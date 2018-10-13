@@ -1,6 +1,12 @@
 # learning_postgresql
+sudo service postgresql start;
+sudo su postgres;
 
-time for ((i=0;i<500;i++));do psql -f /tmp/snake.sql ;done|grep "{"|sort|uniq|sed -re 's/\{|\}|\(|\)//g'
+time for ((i=0;i<500;i++));  
+ do  
+   psql -f /tmp/snake.sql;  
+ done|grep "{"|sort|uniq|sed -re 's/\{|\}|\(|\)//g'; 
+
 real	0m28.188s
 
  1,2,3,6,5,4,7,8,9  
