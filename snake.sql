@@ -1,6 +1,3 @@
---time for ((i=0;i<1000;i++));do psql -f /tmp/s2.sql ;done|grep "{"|sort|uniq|sed -re 's/\{|\}|\(|\)//g'
-
-
 DROP FUNCTION IF EXISTS transition_table;
 DROP TABLE IF EXISTS transition_table;
 DROP FUNCTION IF EXISTS get_moves;
@@ -10,7 +7,10 @@ DROP FUNCTION IF EXISTS get_last_src;
 DROP FUNCTION IF EXISTS random_move;
 DROP FUNCTION IF EXISTS update_transition_table;
 DROP FUNCTION IF EXISTS create_random_move;
+DROP TABLE IF EXISTS  grid_size;
 
+CREATE TABLE grid_size(width int,height int);
+INSERT INTO grid_size values (5,5);
 
 
 CREATE FUNCTION transition_table(int,int)
@@ -32,8 +32,8 @@ $$;
 
 CREATE TABLE transition_table
   AS
-    SELECT ix,transition_table(ix,3) AS ARR
-    FROM generate_series(1,9) AS ix;
+    SELECT ix,transition_table(ix,(select width from grid_size)) AS ARR
+    FROM generate_series(1,(select width*height from grid_size)) AS ix;
 
 CREATE TABLE seen(id SERIAL,src INT);
 
@@ -101,7 +101,7 @@ CREATE FUNCTION create_random_move()
   $$;
 
 
-SELECT create_random_move() FROM generate_series(1,8);
+SELECT create_random_move() FROM generate_series(1,(select width*height-1 from grid_size));
 
 DELETE FROM seen
   WHERE src IS NULL;
@@ -110,7 +110,7 @@ SELECT * FROM seen;
 
 SELECT (
   CASE
-  WHEN (SELECT count(*) FROM seen) = 9
+  WHEN (SELECT count(*) FROM seen) = (select width*height from grid_size)
   THEN (select array_agg(s) FROM (SELECT src FROM seen) AS s)
   ELSE (select array_agg(s) FROM (SELECT 0) AS s)
   End
